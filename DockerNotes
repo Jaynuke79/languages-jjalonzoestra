@@ -1,0 +1,25 @@
+Docker Notes
+
+
+To see the image you've created:
+docker images
+
+
+To see running containers:
+docker ps
+
+
+To see all containers (even stopped ones):
+docker ps -a
+
+
+If you want to inspect the files inside your container, you can start a shell in it:
+docker run -it <container Name> /bin/bash
+
+
+Build Docker Image:
+docker build -t <folder Name> <path To Folder>
+
+
+Run Docker Image:
+docker run <container Name>
