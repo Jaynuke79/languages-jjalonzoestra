@@ -1,6 +1,0 @@
-version: '3'
-services:
-  tamagotchi:
-    build: .
-    ports:
-      - "5000:5000"
