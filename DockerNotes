@@ -30,3 +30,5 @@ docker rmi $(docker images -q)
 
 Stop and Clean all Docker Containers and Images:
 docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -q)
+
+ docker-compose up --build

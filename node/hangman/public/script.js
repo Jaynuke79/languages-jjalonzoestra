@@ -59,7 +59,6 @@ async function startGame() {
 
   if (response.ok) {
     gameId = data.gameId;
-    displayGameState();
     document.getElementById('game-controls').style.display = 'none';
     document.getElementById('game-section').style.display = 'block';
   } else {
