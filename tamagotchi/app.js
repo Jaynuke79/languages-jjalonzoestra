@@ -57,8 +57,7 @@ app.post('/login', async (req, res) => {
 
 // Start a new game
 app.post('/newPet', async (req, res) => {
-  const { userId } = req.body;
-  const { petUsername } = req.name;
+  const { userId, petUsername } = req.body;
   try {
     const petName = await getRandomPet();
     const result = await pool.query('INSERT INTO active_pets (user_id, pet_name, pet_username) VALUES ($1, $2, $3) RETURNING *', [userId, petName, petUsername]);

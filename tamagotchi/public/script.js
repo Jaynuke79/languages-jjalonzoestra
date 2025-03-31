@@ -50,13 +50,12 @@ async function loginUser() {
 // Assigns New Pet to User
 async function newPet() {
   if (!userId) return alert('Please register or login first!');
-  petUsername = document.getElementById('petUsername').value;
+  const petUsername = document.getElementById('pet-username').value;
 
   const response = await fetch('/newPet', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
-    name: JSON.stringify({ petUsername })
+    body: JSON.stringify({ userId, petUsername })
   })
   const data = await response.json();
 
