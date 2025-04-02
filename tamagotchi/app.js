@@ -24,8 +24,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Utility function to get a random word from the database
 const getRandomPet = async () => {
-  const result = await pool.query('SELECT pet_name FROM pets ORDER BY RANDOM() LIMIT 1');
+  const result = await pool.query('SELECT pet_type, pet_name FROM pets ORDER BY RANDOM() LIMIT 1');
   return result.rows.length > 0 ? result.rows[0].pet_name : 'default';
+};
+
+const getRandomPetType = async () => {
+  const result = await pool.query('SELECT pet_type FROM pet_types ORDER BY RANDOM() LIMIT 1');
+  return result.rows.length > 0 ? result.rows[0].pet_type : 'default';
 };
 
 // -------------- ROUTES --------------
@@ -59,113 +64,28 @@ app.post('/login', async (req, res) => {
 app.post('/newPet', async (req, res) => {
   const { userId, petUsername } = req.body;
   try {
-    const petName = await getRandomPet();
-    const result = await pool.query('INSERT INTO active_pets (user_id, pet_name, pet_username) VALUES ($1, $2, $3) RETURNING *', [userId, petName, petUsername]);
+    const petType = await getRandomPetType();
+    const result = await pool.query('INSERT INTO active_pets (user_id, pet_type, pet_username) VALUES ($1, $2, $3) RETURNING *', [userId, petType, petUsername]);
+    await pool.query('INSERT INTO pets (pet_name, pet_type) VALUES ($1, $2)', [petUsername, petType]);
     res.status(201).json({ petId: result.rows[0].id });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Submit a letter guess
-app.post('/guess', async (req, res) => {
-  const { gameId, letter } = req.body;
+// Gets all pet_names in pets
+app.get('/pets', async (req, res) => {
   try {
-    // Check if the game exists and is active
-    const gameResult = await pool.query('SELECT * FROM games WHERE id = $1', [gameId]);
-    if (gameResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Game not found' });
+    const result = await pool.query('SELECT pet_name, pet_type FROM pets');
+    if (result.rows.length === 0) {
+      res.status(200).json({ table: [] });
+    } else {
+      res.status(200).json({ table: result.rows });
     }
-    const game = gameResult.rows[0];
-    if (game.status !== 'active') {
-      return res.status(400).json({ error: `Game is ${game.status}` });
-    }
-
-    // Check if the letter was already guessed
-    const guessResult = await pool.query('SELECT * FROM game_states WHERE game_id = $1 AND guessed_letter = $2', [gameId, letter]);
-    if (guessResult.rows.length > 0) {
-      return res.status(400).json({ error: 'Letter already guessed' });
-    }
-
-    // Add the guess to the game state
-    await pool.query('INSERT INTO game_states (game_id, guessed_letter) VALUES ($1, $2)', [gameId, letter]);
-
-    // Check if the letter is in the word
-    const isLetterInWord = game.word.includes(letter);
-    if (!isLetterInWord) {
-      // If the guess is incorrect, decrement remaining attempts
-      await pool.query('UPDATE games SET remaining_attempts = remaining_attempts - 1 WHERE id = $1', [gameId]);
-    }
-
-    // Update game status if necessary
-    const updatedGameResult = await pool.query('SELECT * FROM games WHERE id = $1', [gameId]);
-    const updatedGame = updatedGameResult.rows[0];
-    if (updatedGame.remaining_attempts <= 0) {
-      await pool.query('UPDATE games SET status = $1 WHERE id = $2', ['lost', gameId]);
-      return res.json({ status: 'lost', word: game.word });
-    }
-
-    // Check if the user has won
-    const guessedLettersResult = await pool.query('SELECT guessed_letter FROM game_states WHERE game_id = $1', [gameId]);
-    const guessedLetters = guessedLettersResult.rows.map(row => row.guessed_letter);
-    const uniqueLettersInWord = new Set(game.word);
-
-    if ([...uniqueLettersInWord].every(letter => guessedLetters.includes(letter))) {
-      await pool.query('UPDATE games SET status = $1 WHERE id = $2', ['won', gameId]);
-      return res.json({ status: 'won', word: game.word });
-    }
-
-    res.json({ status: 'active', remainingAttempts: updatedGame.remaining_attempts });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({error : error.message});
   }
-});
-
-// Get the current game state
-app.get('/state', async (req, res) => {
-  const { gameId } = req.query;
-  try {
-    const gameResult = await pool.query('SELECT * FROM games WHERE id = $1', [gameId]);
-    if (gameResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Game not found' });
-    }
-
-    const game = gameResult.rows[0];
-    const guessedLettersResult = await pool.query('SELECT guessed_letter FROM game_states WHERE game_id = $1', [gameId]);
-    const guessedLetters = guessedLettersResult.rows.map(row => row.guessed_letter);
-
-    const wordState = game.word.split('').map(letter => (guessedLetters.includes(letter) ? letter : '_')).join('');
-
-    res.json({ wordState, guessedLetters, remainingAttempts: game.remaining_attempts, status: game.status });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-// Admin: Get all words
-app.get('/admin/words', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT word FROM words');
-    const words = result.rows.map(row => row.word);
-    res.json(words);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-// Admin: Set words
-app.post('/admin/words', async (req, res) => {
-  const { words } = req.body; // Expects an array of words
-  try {
-    await pool.query('TRUNCATE TABLE words');
-    words.each(async (word)=>{
-      await pool.query('INSERT INTO words (word) VALUES ($1)',[word]);
-    })
-    res.status(201).json({ message: 'Words updated successfully' });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
+})
 
 // Serve the frontend for any other routes not defined above
 app.get('*', (req, res) => {
