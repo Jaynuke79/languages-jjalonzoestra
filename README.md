@@ -1,2 +1,2 @@
 # ProLangs
-CSCI 330 - Programming Languages - MacEvoy
+CSCI 330 - Programming Languages - Jjalonzo
