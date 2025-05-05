@@ -1,1 +1,4 @@
 tamagotchi.zip
+.mypy_cache/
+.github/
+__pycache__/
