@@ -67,7 +67,6 @@ Lua is widely used in:
 - No native OOP system (you roll your own via tables/metatables)
 - No built-in parallelism (only coroutines)
 - No standard libraries for sockets, filesystems, or GUIs—expect the host to provide them
-- No compile-time types (but some dialects like Typed Lua exist)
 
 ### History
 Lua was created in 1993 by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, and Waldemar Celes at the Pontifical Catholic University of Rio de Janeiro (PUC-Rio) in Brazil. It was initially developed to address the need for a flexible and lightweight scripting language for data description and configuration in software projects.
@@ -75,7 +74,7 @@ Lua was created in 1993 by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, a
 ### Philosophy
 Lua's design philosophy emphasizes simplicity, portability, and efficiency. It was built to be embedded in other applications, providing a powerful yet lightweight scripting layer. Lua's creators focused on keeping the language small and fast, avoiding unnecessary complexity while ensuring it could be easily integrated into diverse environments. This philosophy has made Lua a popular choice for applications requiring extensibility and customization.
 
-## Unique Facts 
+## Technical Facts 
 
 ### Everything is a Table
 Arrays, Dictionaries, Objects, Modules -- All Tables
